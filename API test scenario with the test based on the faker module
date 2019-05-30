@@ -1,0 +1,44 @@
+import requests
+import unittest
+import json
+from faker import Faker
+
+
+class APITest(unittest.TestCase):
+    base_url = "https://api-dev.bluecrewjobs.com/v1/noauth"
+
+
+    def _post(self, endpoint, json_data):
+        return requests.post(self.base_url + endpoint, json=json_data)
+
+    def setUp(self):
+        fake = Faker()
+        self.first_name = fake.first_name()
+        self.last_name = fake.last_name()
+        self.email = fake.email()
+        self.password = fake.password()
+        self.referrer = fake.url()
+
+
+    def test_signup_with_valid_data(self):
+        signup_data = {
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "password": self.password,
+            "referrer": self.referrer,
+            "source": "Craigslist"
+        }
+
+        response = self._post("/signup/", json_data=signup_data)
+        self.assertEqual(response.status_code, 200)
+        parsed_response = json.loads(response.content)
+        self.assertIsNotNone(parsed_response["authToken"])
+        self.assertEqual(parsed_response["first_name"], self.first_name)
+        self.assertEqual(parsed_response["last_name"], self.last_name)
+        self.assertEqual(parsed_response["email"], self.email)
+        self.assertEqual(parsed_response["first_name"], self.first_name)
+
+
+if __name__ == "__main__":
+    unittest.main()
